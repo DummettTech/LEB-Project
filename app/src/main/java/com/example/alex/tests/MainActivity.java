@@ -33,9 +33,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.jar.Manifest;
 
-//<uses-permission android:name="android.permission.BLUETOOTH" />
-  //       <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-//pretty sure this doesnt go here, will have to check back later
 
 @TargetApi(18)
 
@@ -43,22 +40,15 @@ public class MainActivity extends AppCompatActivity {
 
     private Region region;
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         if (mBluetoothAdapter.isEnabled()
                 ) {
-
                 mBluetoothAdapter.disable();
-
                 //can do something here if needed later
-
         }
     }
     private BluetoothAdapter mBluetooth;
@@ -66,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
     private SparseArray<BluetoothDevice> mDevices;
 
 
+    private int beconnum;
+
+    String name;
 
     private BluetoothAdapter.LeScanCallback mLeScanCalllBack = new BluetoothAdapter.LeScanCallback()
     {
@@ -74,19 +67,41 @@ public class MainActivity extends AppCompatActivity {
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte [] scanRecord)
         {
 
+            //openURL("http://www.google.com");
+
+
+
+            if(!device.getAddress().isEmpty()) {
+
+                name = device.getAddress();
+
+                if (name == "0C:F3:EE:00:4F:6C") { beconnum = 1; }
+
+                    //done it
+                    if (beconnum == 1){
+
+                    openURL("http://www,dum12373618.wordpress.com");
+
+                }
+            }
+
             int startByte = 2;
             boolean patternFound = false;
+
             while (startByte <= 5) {
                 if (
+
                         ((int) scanRecord[startByte + 2] & 0xff) == 0x02 && //Identifies an iBeacon
 
                         ((int) scanRecord[startByte + 3] & 0xff) == 0x15) { //Identifies correct data length
+
                     patternFound = true;
                     break;
                 }
                 startByte++;
             }
 
+            name = id1.toString();
 
             //add to later
         }
@@ -94,13 +109,8 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
-
-
-
     BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     boolean hasBluetooth = (mBluetoothAdapter == null);
-
-    //private final integer REQUEST_ENABLE_BT = 1;
 
     int i = 1;
     boolean istrue = false;
@@ -111,18 +121,6 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean startLeScan (UUID id)
     {
-
-
-      //  beacon1 = 8a5a8c8f-58ea-4955-bc5e-9cbd4af87286;
-
-        //beacon1.fromString("8a5a8c8f-58ea-4955-bc5e-9cbd4af87286");
-
-        //id.compareTo(beacon1);
-
-
-       // tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord("MyAPP",beacon1);
-
-
 
         if (id == beacon1) {
 
@@ -138,21 +136,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-  /*  public void setentry(View v, Object data, boolean isSelectable)
-    {
-
-        ListView listView = (ListView) v;
-
-
-
-        listView.addFooterView(listView,data,isSelectable);
-
-
-
-
-    }
-*/
     UUID id1;
 
     public void openURL(String inURL)
@@ -161,18 +144,13 @@ public class MainActivity extends AppCompatActivity {
 
         startActivity(browse);
 
-
+        
 
     }
 
     public void buttonOnClick(View v){
-    //    int i = 0;
 
         boolean selectable = false;
-
-        //ListView listView = (ListView) findViewById(R.id.blelistview);
-
-
 
 
 
@@ -180,73 +158,76 @@ public class MainActivity extends AppCompatActivity {
 
         final UUID[] uuids = {UUID.fromString("8a5a8c8f-58ea-4955-bc5e-9cbd4af87286")};
 
-
-        Button button = (Button) v;
-        //((Button) v).setText("on");
-
-
-        while (i == 0) {
-
-
-
-          /*  if (hasBluetooth && !mBluetoothAdapter.isEnabled()) {
-
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-
-            }
-
-
-*/
-            ((Button) v).setText("ON");
+        ToggleButton button = (ToggleButton) v;
 
 
 
 
+            if (button.isChecked()) {
+                button.setText("ON");
 
-
-           /* if(startLeScan(id1) == true)
-            {
-
-                //true
-            };
-*/
-
-
-            //listView.addFooterView(listView,i, selectable);
-
-
-
-            if(hasBluetooth && !mBluetoothAdapter.isEnabled()) {
-
-                ((Button) v).setText("SUPER on");
-
-            }
-
-
-            mBluetoothAdapter.enable();
+                mBluetoothAdapter.enable();
 
 
             startScan();
 
-            //openURL("http://www.dum12373618.wordpress.com");
-
-            i = 1;
         }
 
-        if (i == 1){
+        if (!button.isChecked()){
 
 
             mBluetoothAdapter.disable();
 
-            ((Button) v).setText("OFF");
-            i = 0;
+            button.setText("OFF");
+
 
         }
 
     }
 
-    void startScan ()
+    public void rescanButton (View view)
+    {
+
+
+        if(mBluetoothAdapter.isEnabled()) {
+            ((Button) view).setText("did it");
+
+
+            startScan();
+        }
+        else {
+
+            ((Button)view).setText("Turning on Bluetooth");
+
+            ToggleButton toggle = (ToggleButton) findViewById(R.id.togglebutton);
+
+
+            toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                    if (buttonView.isChecked()) {
+                        isChecked = true;
+                    } else {
+                        isChecked = false;
+                    }
+
+                    if (!isChecked) {
+                        buttonView.toggle();
+                        mBluetoothAdapter.enable();
+                    }
+                }
+            });
+
+
+            if(mBluetoothAdapter.isEnabled())
+                {
+                    ((Button)view).setText("Did it");
+                    startScan();
+                }
+        }
+    }
+
+    public void startScan ()
     {
 
 
@@ -264,15 +245,21 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     mBluetoothAdapter.stopLeScan(mLeScanCalllBack);
 
-                    if (mBluetoothAdapter.startLeScan(uuids, mLeScanCalllBack) == true)
+                    final UUID[] uuids = {UUID.fromString("8a5a8c8f-58ea-4955-bc5e-9cbd4af87286")};
+
+                    mBluetoothAdapter.startLeScan(mLeScanCalllBack);
+
+                   /* while (mBluetoothAdapter.startLeScan(uuids, mLeScanCalllBack))
+
 
                     {
-                        openURL("http://www.dum12373618.wordpress.com");
 
-                    }
-
+                        //while (blah.toString() == "0C:F3:EE:00:4F:6C"){
+                            mBluetoothAdapter.startLeScan(mLeScanCalllBack);
+                            //openURL("http://www.dum12373618.wordpress.com");
+                    }*/
                 }
-            }, 5000);
+            }, 5000);//50 seconds timer
         }
     }
 
