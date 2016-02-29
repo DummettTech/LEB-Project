@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothServerSocket;
@@ -16,9 +17,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Region;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -27,6 +30,10 @@ import android.widget.CompoundButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ToggleButton;
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +46,11 @@ import java.util.jar.Manifest;
 public class MainActivity extends AppCompatActivity {
 
     private Region region;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +59,14 @@ public class MainActivity extends AppCompatActivity {
 
         if (mBluetoothAdapter.isEnabled()
                 ) {
-                mBluetoothAdapter.disable();
-                //can do something here if needed later
+            mBluetoothAdapter.disable();
+            //can do something here if needed later
         }
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
+
     private BluetoothAdapter mBluetooth;
 
     private SparseArray<BluetoothDevice> mDevices;
@@ -60,28 +76,38 @@ public class MainActivity extends AppCompatActivity {
 
     String name;
 
-    private BluetoothAdapter.LeScanCallback mLeScanCalllBack = new BluetoothAdapter.LeScanCallback()
-    {
+    String[] adresslist;
+
+    private BluetoothAdapter.LeScanCallback mLeScanCalllBack = new BluetoothAdapter.LeScanCallback() {
         @Override
 
-        public void onLeScan(final BluetoothDevice device, final int rssi, final byte [] scanRecord)
-        {
+        public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
 
             //openURL("http://www.google.com");
 
+            //adresslist[0] = "0C:F3:EE:00:4F:6C"; //beacon 1
+            //adresslist[1] = "E3:C9:42:12:DB:71"; //esitome
 
 
-            if(!device.getAddress().isEmpty()) {
+            if (!device.getAddress().isEmpty()) {
 
                 name = device.getAddress();
 
-                if (name == "0C:F3:EE:00:4F:6C") { beconnum = 1; }
+                Log.d("ADDRESSES","Device Adresss is " + name + " RSSI is: " + rssi);
 
-                    //done it
-                    if (beconnum == 1){
+                if (name.toString().equals(adresslist[0])) {Log.d("LOGGING","address is 0");
+                    beconnum = 1;
+                }
+                if (name.toString().equals(adresslist[1])) {Log.d("LOGGING","address is 1");
+                    beconnum = 2;
+                }
 
-                    openURL("http://www,dum12373618.wordpress.com");
 
+                if (beconnum == 1) {
+
+                    if (rssi <= -80) {
+                        openURL("http://www,dum12373618.wordpress.com");
+                    }
                 }
             }
 
@@ -93,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
                         ((int) scanRecord[startByte + 2] & 0xff) == 0x02 && //Identifies an iBeacon
 
-                        ((int) scanRecord[startByte + 3] & 0xff) == 0x15) { //Identifies correct data length
+                                ((int) scanRecord[startByte + 3] & 0xff) == 0x15) { //Identifies correct data length
 
                     patternFound = true;
                     break;
@@ -119,12 +145,11 @@ public class MainActivity extends AppCompatActivity {
 
     BluetoothServerSocket tmp;
 
-    public boolean startLeScan (UUID id)
-    {
+    public boolean startLeScan(UUID id) {
 
         if (id == beacon1) {
 
-        istrue = true;
+            istrue = true;
 
         }
         //beacon declirations
@@ -133,25 +158,21 @@ public class MainActivity extends AppCompatActivity {
         return (istrue);
 
 
-
     }
 
     UUID id1;
 
-    public void openURL(String inURL)
-    {
+    public void openURL(String inURL) {
         Intent browse = new Intent(Intent.ACTION_VIEW, Uri.parse(inURL));
 
         startActivity(browse);
 
-        
 
     }
 
-    public void buttonOnClick(View v){
+    public void buttonOnClick(View v) {
 
         boolean selectable = false;
-
 
 
         id1.fromString("8a5a8c8f-58ea-4955-bc5e-9cbd4af87286");
@@ -161,19 +182,17 @@ public class MainActivity extends AppCompatActivity {
         ToggleButton button = (ToggleButton) v;
 
 
+        if (button.isChecked()) {
+            button.setText("ON");
 
-
-            if (button.isChecked()) {
-                button.setText("ON");
-
-                mBluetoothAdapter.enable();
+            mBluetoothAdapter.enable();
 
 
             startScan();
 
         }
 
-        if (!button.isChecked()){
+        if (!button.isChecked()) {
 
 
             mBluetoothAdapter.disable();
@@ -185,19 +204,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void rescanButton (View view)
-    {
+    public void rescanButton(View view) {
 
 
-        if(mBluetoothAdapter.isEnabled()) {
+        if (mBluetoothAdapter.isEnabled()) {
             ((Button) view).setText("did it");
 
 
             startScan();
-        }
-        else {
+        } else {
 
-            ((Button)view).setText("Turning on Bluetooth");
+            ((Button) view).setText("Turning on Bluetooth");
 
             ToggleButton toggle = (ToggleButton) findViewById(R.id.togglebutton);
 
@@ -219,24 +236,20 @@ public class MainActivity extends AppCompatActivity {
             });
 
 
-            if(mBluetoothAdapter.isEnabled())
-                {
-                    ((Button)view).setText("Did it");
-                    startScan();
-                }
+            if (mBluetoothAdapter.isEnabled()) {
+                ((Button) view).setText("Did it");
+                startScan();
+            }
         }
     }
 
-    public void startScan ()
-    {
+    public void startScan() {
 
+        Log.d("Log","StartScan");
 
-        if (!mBluetoothAdapter.isEnabled())
-        {
+        if (!mBluetoothAdapter.isEnabled()) {
 
-        }
-
-        else {
+        } else {
             Handler handler = new Handler();
 
 
@@ -264,5 +277,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onStart() {
+        super.onStart();
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.example.alex.tests/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.example.alex.tests/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
 }
