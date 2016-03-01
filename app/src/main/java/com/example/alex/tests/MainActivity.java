@@ -62,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
             mBluetoothAdapter.disable();
             //can do something here if needed later
         }
+
+        setadresses();
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -77,37 +80,48 @@ public class MainActivity extends AppCompatActivity {
     String name;
 
     String[] adresslist;
+    String[] weblinks;
+
+public void setadresses ()
+    {
+
+        adresslist[0] = "0C:F3:EE:00:4F:6C"; //beacon 1
+        adresslist[1] = "E3:C9:42:12:DB:71"; //esitome
+        weblinks[0] = "http://www.lincstothepast.com/exhibitions/treasures/lincolnshire-tank/";
+    }
+
 
     private BluetoothAdapter.LeScanCallback mLeScanCalllBack = new BluetoothAdapter.LeScanCallback() {
         @Override
-
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
 
             //openURL("http://www.google.com");
-
-            //adresslist[0] = "0C:F3:EE:00:4F:6C"; //beacon 1
-            //adresslist[1] = "E3:C9:42:12:DB:71"; //esitome
-
 
             if (!device.getAddress().isEmpty()) {
 
                 name = device.getAddress();
 
-                Log.d("ADDRESSES","Device Adresss is " + name + " RSSI is: " + rssi);
-
-                if (name.toString().equals(adresslist[0])) {Log.d("LOGGING","address is 0");
-                    beconnum = 1;
-                }
-                if (name.toString().equals(adresslist[1])) {Log.d("LOGGING","address is 1");
-                    beconnum = 2;
-                }
-
-
                 if (beconnum == 1) {
 
-                    if (rssi <= -80) {
-                        openURL("http://www,dum12373618.wordpress.com");
+                    if (rssi >= -80) {
+                        openURL(weblinks[0]);
                     }
+                }
+                else {
+                    //setadresses();
+
+                    Log.d("ADDRESSES", "Device Adresss is " + name + " RSSI is: " + rssi);
+
+                    if (name.toString().equals("0C:F3:EE:00:4F:6C")) {
+                        Log.d("LOGGING", "address is 0");
+                        beconnum = 1;
+                    }
+                    if (name.toString().equals(adresslist[1])) {
+                        Log.d("LOGGING", "address is 1");
+                        beconnum = 2;
+                    }
+
+
                 }
             }
 
