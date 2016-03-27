@@ -19,11 +19,15 @@ import android.graphics.Region;
 import android.net.Uri;
 import android.nfc.Tag;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -83,34 +87,63 @@ public class MainActivity extends AppCompatActivity {
 
     String[] adresslist = new String[5];
     String[] weblinks = new String[5];
+    UUID[] knownuuids = new UUID[5];
 
     boolean foundbeacon = false;
-
+    //String[] knownuuids = new String[5];
 public void setadresses ()
     {
 
+        String temp;
+        temp = "0C:F3:EE:00:4F:6C";
+        //knownuuids = UUID.fromString("0C:F3:EE:00:4F:6C");
 
 
-        adresslist[0] = "0C:F3:EE:00:4F:6C"; //beacon 1
+
+
+        knownuuids[0] = UUID.fromString("8a5a8c8f-58ea-4955-bc5e-9cbd4af87286");
+       // knownuuids[2] = "E3:C9:42:12:DB:71";
+
+
+        adresslist[0] = "0C:F3:EE:00:4F:6C  "; //beacon 1
         adresslist[1] = "E3:C9:42:12:DB:71"; //esitom
+        adresslist[2] = "0C:F3:EE:04:31:7B"; //beacon 2
+        adresslist[3] = "0C:F3:EE;04:30:3A";//beacon 3
+        adresslist[4] = "0C:F3:EE:04:2E:26"; //beacon 4
+        adresslist[5] = "0C:f3:EE:04:2E:53";//beacon 5
         weblinks[1] = "http://www.lincstothepast.com/exhibitions/treasures/lincolnshire-tank/";
         weblinks[2] = "http://www.lincstothepast.com/Museum-of-Lincolnshire-Life--Burton-Road--Lincoln/245911.record?pt=S";
 
 
     }
 
-    boolean isopen;
+    boolean mybeacon = false;
+    boolean isopen = false;
     boolean manualinput = false;
-
+    boolean hasvibrated = false;
     private BluetoothAdapter.LeScanCallback mLeScanCalllBack = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
 
             Spinner dropdown = (Spinner)findViewById(R.id.spinner);
 
-            if (!device.getAddress().isEmpty()) {
+            /*for(int i = 0; i < knownuuids.length;i++) {
 
-                if(dropdown.getPopupContext().toString().equals("0")){}
+                if(device.getUuids().toString() == knownuuids[i])
+                {
+                    mybeacon = true;
+                }
+                else
+                {
+                    Log.d("BEACON","New Beacon found: " + device.getUuids().toString());
+                }
+
+            }
+*/
+
+                if (!device.getAddress().isEmpty() /*&& mybeacon == true*/) {
+
+                /*if(dropdown.getPopupContext().toString().equals("0")){}
                 else {
 
                     beconnum = Integer.parseInt(dropdown.getPopupContext().toString());
@@ -120,17 +153,22 @@ public void setadresses ()
                     Log.d("LOGGING","beconnum: " + dropdown.getPopupContext().toString());
 
                     }
-
+                */
+                //foundbeacon = true;
                 name = device.getAddress();
+                mybeacon = false;
 
-                if (foundbeacon == true) {
+                if (foundbeacon == true && isopen == false) {
 
-                    while (rssi >= -80 || manualinput == true) {
-                        if (isopen = true){
+
+                    if (rssi >= -55) {
                             openURL(weblinks[beconnum]);
                             isopen = true;
-                        }
+                            //currentrssi = rssi;
+
                     }
+                    if (rssi <= -80) { foundbeacon = false; closeWebApp();hasvibrated = false;}
+
                     beconnum = 0;
                     isopen = false;
                     manualinput = false;
@@ -139,15 +177,19 @@ public void setadresses ()
 
                     Log.d("ADDRE    SSES", "Device Adresss is " + name + " RSSI is: " + rssi);
 
-                    if (name.toString().equals(adresslist[0])) {
-                        Log.d("LOGGING", "address is 0");
+                    if (name.toString().equals(adresslist[2])) {
+                        Log.d("LOGGING", "address is 2");
                         beconnum = 1;
                         foundbeacon = true;
+                        if(hasvibrated == false){vibrate(); hasvibrated = true;}
+                        //vibrate();
                     }
                     if (name.toString().equals(adresslist[1])) {
                         Log.d("LOGGING", "address is 1");
                         beconnum = 2;
                         foundbeacon = true;
+                        if(hasvibrated == false){vibrate();hasvibrated = true;}
+                        //vibrate();
                     }
 
                 }
@@ -177,12 +219,57 @@ public void setadresses ()
     BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     boolean hasBluetooth = (mBluetoothAdapter == null);
 
+    String publicURL;
     UUID id1;
+    WebView mWebView;
 
+    public void closeWebApp()
+    {
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final WebView mWebView = (WebView) findViewById(R.id.webView);
+                mWebView.setVisibility(View.INVISIBLE);
+
+            }
+        });
+
+    }
     public void openURL(String inURL) {
-        Intent browse = new Intent(Intent.ACTION_VIEW, Uri.parse(inURL));
+        //Intent browse = new Intent(Intent.ACTION_VIEW, Uri.parse(inURL));
 
-        startActivity(browse);
+        publicURL = inURL;
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                final WebView mWebView = (WebView) findViewById(R.id.webView);
+
+                /*
+                mWebView.getSettings().setJavaScriptEnabled(true);
+                mWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+                mWebView.getSettings().setLoadWithOverviewMode(true);
+                mWebView.getSettings().setUseWideViewPort(true);
+*/
+                mWebView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+                mWebView.setScrollbarFadingEnabled(false);
+
+                if(!isopen) {
+                    mWebView.loadUrl(publicURL);
+                }
+                isopen = true;
+                //startActivity(browse);
+                mWebView.setWebViewClient(new WebViewClient() {
+                    public void onPageFinished(WebView view, String url) {
+
+                        mWebView.setVisibility(View.VISIBLE);
+
+                     //   isopen = true;
+                    }
+                });
+            }
+        });
+
 
 
     }
@@ -204,7 +291,7 @@ public void setadresses ()
 
             mBluetoothAdapter.enable();
 
-            startScan();
+            //startScan();
 
         }
 
@@ -215,10 +302,26 @@ public void setadresses ()
 
     }
 
+    public void vibrate()
+    {
+       Vibrator vibe = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+
+        if(vibe.hasVibrator()) {
+        vibe.vibrate(1000);
+        }
+        else {
+            Log.d("ERROR","No Vibe functioanily found");
+        }
+
+
+    }
+
+
+
     public void rescanButton(View view) {
 
         if (mBluetoothAdapter.isEnabled()) {
-            ((Button) view).setText("did it");
+            ((Button) view).setText("Scan Started");
             startScan();
         } else {
 
@@ -240,10 +343,6 @@ public void setadresses ()
                 }
             });
 
-            if (mBluetoothAdapter.isEnabled()) {
-                ((Button) view).setText("Did it");
-                startScan();
-            }
         }
     }
 
@@ -258,7 +357,6 @@ public void setadresses ()
         } else {
             Handler handler = new Handler();
 
-
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -266,7 +364,7 @@ public void setadresses ()
 
                     final UUID[] uuids = {UUID.fromString("8a5a8c8f-58ea-4955-bc5e-9cbd4af87286")};
 
-                    mBluetoothAdapter.startLeScan(mLeScanCalllBack);
+                        mBluetoothAdapter.startLeScan(mLeScanCalllBack);
 
                    /* while (mBluetoothAdapter.startLeScan(uuids, mLeScanCalllBack))
 
