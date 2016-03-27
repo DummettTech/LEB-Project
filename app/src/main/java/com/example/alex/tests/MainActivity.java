@@ -106,14 +106,17 @@ public void setadresses ()
 
 
         adresslist[0] = "0C:F3:EE:00:4F:6C  "; //beacon 1
-        adresslist[1] = "E3:C9:42:12:DB:71"; //esitom
-        adresslist[2] = "0C:F3:EE:04:31:7B"; //beacon 2
-        adresslist[3] = "0C:F3:EE;04:30:3A";//beacon 3
-        adresslist[4] = "0C:F3:EE:04:2E:26"; //beacon 4
-        adresslist[5] = "0C:f3:EE:04:2E:53";//beacon 5
-        weblinks[1] = "http://www.lincstothepast.com/exhibitions/treasures/lincolnshire-tank/";
-        weblinks[2] = "http://www.lincstothepast.com/Museum-of-Lincolnshire-Life--Burton-Road--Lincoln/245911.record?pt=S";
+       // adresslist[1] = "E3:C9:42:12:DB:71"; //esitom
+        adresslist[1] = "0C:F3:EE:04:31:7B"; //beacon 2
+        adresslist[2] = "0C:F3:EE;04:30:3A";//beacon 3
+        adresslist[3] = "0C:F3:EE:04:2E:26"; //beacon 4
+        adresslist[4] = "0C:f3:EE:04:2E:53";//beacon 5
 
+        weblinks[0] = "http://www.lincstothepast.com/Museum-of-Lincolnshire-Life--Burton-Road--Lincoln/245911.record?pt=S";
+        weblinks[1] = "http://www.lincstothepast.com/exhibitions/treasures/lincolnshire-tank/";
+        weblinks[2] = "http://www.lincstothepast.com/exhibitions/lincolnshire-at-war/war-memorials/";
+        weblinks[3] = "http://www.lincstothepast.com/exhibitions/lincs-through-the-ages/plagues-potions-and-pills/";
+        weblinks[4] = "http://www.lincstothepast.com/exhibitions/lincolnshire-at-war/lincolnshire-pioneering-engineering/";
 
     }
 
@@ -121,6 +124,10 @@ public void setadresses ()
     boolean isopen = false;
     boolean manualinput = false;
     boolean hasvibrated = false;
+    boolean cont = false;
+
+    String currentaddress;
+
     private BluetoothAdapter.LeScanCallback mLeScanCalllBack = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
@@ -154,46 +161,75 @@ public void setadresses ()
 
                     }
                 */
-                //foundbeacon = true;
-                name = device.getAddress();
-                mybeacon = false;
+                    //foundbeacon = true;
+                    int i = 0;
+                    name = device.getAddress();
+                    mybeacon = false;
 
-                if (foundbeacon == true && isopen == false) {
+
+                    while (i < adresslist.length) {
+                        cont = true;
 
 
-                    if (rssi >= -55) {
-                            openURL(weblinks[beconnum]);
-                            isopen = true;
-                            //currentrssi = rssi;
+                        if (name.toString() == adresslist[i]) {
 
+                            foundbeacon = true;
+                            beconnum = i;
+
+
+                            if (foundbeacon == true) {
+
+
+                                if (isopen == false) {
+                                 vibrate();
+
+                                }
+
+
+                                if (rssi >= -55 && isopen == false) {
+                                    openURL(weblinks[beconnum]);
+                                    isopen = true;
+                                    currentaddress = name;
+                                    //currentrssi = rssi;
+
+                                }
+
+
+
+                                if (rssi <= -80 && isopen == true && name == currentaddress) {
+                                    foundbeacon = false;
+                                    closeWebApp();
+                                    hasvibrated = false;
+                                }
+
+                                beconnum = 0;
+                                isopen = false;
+                                manualinput = false;
+                            } else {
+
+                                Log.d("ADDRE    SSES", "Device Adresss is " + name + " RSSI is: " + rssi);
+
+                                /*
+                                if (name.toString().equals(adresslist[2])) {
+                                    Log.d("LOGGING", "address is 2");
+                                    beconnum = 1;
+                                    foundbeacon = true;
+                                    if(hasvibrated == false){vibrate(); hasvibrated = true;}
+                                    //vibrate();
+                                }
+                                if (name.toString().equals(adresslist[1])) {
+                                    Log.d("LOGGING", "address is 1");
+                                    beconnum = 2;
+                                    foundbeacon = true;
+                                    if(hasvibrated == false){vibrate();hasvibrated = true;}
+                                    //vibrate();
+                                }
+            */
+                            }
+                        }
+                        i++;
                     }
-                    if (rssi <= -80) { foundbeacon = false; closeWebApp();hasvibrated = false;}
-
-                    beconnum = 0;
-                    isopen = false;
-                    manualinput = false;
                 }
-                else {
-
-                    Log.d("ADDRE    SSES", "Device Adresss is " + name + " RSSI is: " + rssi);
-
-                    if (name.toString().equals(adresslist[2])) {
-                        Log.d("LOGGING", "address is 2");
-                        beconnum = 1;
-                        foundbeacon = true;
-                        if(hasvibrated == false){vibrate(); hasvibrated = true;}
-                        //vibrate();
-                    }
-                    if (name.toString().equals(adresslist[1])) {
-                        Log.d("LOGGING", "address is 1");
-                        beconnum = 2;
-                        foundbeacon = true;
-                        if(hasvibrated == false){vibrate();hasvibrated = true;}
-                        //vibrate();
-                    }
-
-                }
-            }
 
             int startByte = 2;
 
