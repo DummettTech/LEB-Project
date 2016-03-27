@@ -40,7 +40,9 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.jar.Manifest;
@@ -64,10 +66,13 @@ public class MainActivity extends AppCompatActivity {
 
         Spinner dropbown = (Spinner)findViewById(R.id.spinner);
 
+        Button closebutton = (Button)findViewById(R.id.close_button);
+
+        closebutton.setVisibility(View.INVISIBLE);
+
         String[] list = new String[]{"0", "1", "2","3","4","5"};
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, list);
         dropbown.setAdapter(adapter);
-
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -104,6 +109,10 @@ public void setadresses ()
         knownuuids[0] = UUID.fromString("8a5a8c8f-58ea-4955-bc5e-9cbd4af87286");
        // knownuuids[2] = "E3:C9:42:12:DB:71";
 
+        // Reference Ashley Williamson 27/03/16 - Discussion on the Map DataType.
+        HashMap< String, String > someMap = new HashMap< String, String>(5);
+        someMap.put( "0C:F3:EE:00:4F:6C", "http://www.lincstothepast.com/Museum-of-Lincolnshire-Life--Burton-Road--Lincoln/245911.record?pt=S" );
+        Log.d( "FUCKOFF", someMap.get( "0C:F3:EE:00:4F:6C" ) );
 
         adresslist[0] = "0C:F3:EE:00:4F:6C  "; //beacon 1
        // adresslist[1] = "E3:C9:42:12:DB:71"; //esitom
