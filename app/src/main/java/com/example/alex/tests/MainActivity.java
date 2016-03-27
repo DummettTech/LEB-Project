@@ -229,7 +229,24 @@ public void setadresses ()
             @Override
             public void run() {
                 final WebView mWebView = (WebView) findViewById(R.id.webView);
+                final Button button = (Button) findViewById(R.id.close_button);
                 mWebView.setVisibility(View.INVISIBLE);
+                button.setVisibility(View.INVISIBLE);
+
+            }
+        });
+
+    }
+
+    public void openWebApp()
+    {
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final WebView mWebView = (WebView) findViewById(R.id.webView);
+                final Button button = (Button) findViewById(R.id.close_button);
+                mWebView.setVisibility(View.VISIBLE);
+                button.setVisibility(View.VISIBLE);
 
             }
         });
@@ -262,7 +279,9 @@ public void setadresses ()
                 mWebView.setWebViewClient(new WebViewClient() {
                     public void onPageFinished(WebView view, String url) {
 
-                        mWebView.setVisibility(View.VISIBLE);
+                      //  mWebView.setVisibility(View.VISIBLE); //old code
+
+                        openWebApp();
 
                      //   isopen = true;
                     }
@@ -271,6 +290,20 @@ public void setadresses ()
         });
 
 
+
+    }
+
+    public void closebuttonOnClick(View v){
+
+
+        Button button = (Button) v;
+
+        button.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v)
+            {
+                closeWebApp();
+            }
+        });
 
     }
 
@@ -310,7 +343,7 @@ public void setadresses ()
         vibe.vibrate(1000);
         }
         else {
-            Log.d("ERROR","No Vibe functioanily found");
+            Log.d("ERROR", "No Vibe functioanily found");
         }
 
 
@@ -345,6 +378,8 @@ public void setadresses ()
 
         }
     }
+
+
 
     public void startScan() {
 
