@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         String[] list = new String[]{"0", "1", "2","3","4","5"};
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, list);
         dropbown.setAdapter(adapter);
-
+        //dropbown.setVisibility(View.INVISIBLE);
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -117,9 +117,9 @@ public void setadresses ()
         adresslist[0] = "0C:F3:EE:00:4F:6C  "; //beacon 1
        // adresslist[1] = "E3:C9:42:12:DB:71"; //esitom
         adresslist[1] = "0C:F3:EE:04:31:7B"; //beacon 2
-        adresslist[2] = "0C:F3:EE;04:30:3A";//beacon 3
+        adresslist[2] = "0C:F3:EE:04:30:3A";//beacon 3
         adresslist[3] = "0C:F3:EE:04:2E:26"; //beacon 4
-        adresslist[4] = "0C:f3:EE:04:2E:53";//beacon 5
+        adresslist[4] = "0C:F3:EE:04:2E:53";//beacon 5
 
         weblinks[0] = "http://www.lincstothepast.com/Museum-of-Lincolnshire-Life--Burton-Road--Lincoln/245911.record?pt=S";
         weblinks[1] = "http://www.lincstothepast.com/exhibitions/treasures/lincolnshire-tank/";
@@ -129,6 +129,9 @@ public void setadresses ()
 
     }
 
+
+
+
     boolean mybeacon = false;
     boolean isopen = false;
     boolean manualinput = false;
@@ -136,6 +139,25 @@ public void setadresses ()
     boolean cont = false;
 
     String currentaddress;
+
+    String tmpadress;
+
+
+    public void demoscan(View view) {
+
+        ((Button) view).setText("Demo Scan");
+
+        Spinner dropdown = (Spinner) findViewById(R.id.spinner);
+
+        int value = Integer.parseInt(dropdown.getSelectedItem().toString());
+
+        isopen = true;
+
+        openURL(weblinks[value]);
+
+        //openWebApp();
+    }
+
 
     private BluetoothAdapter.LeScanCallback mLeScanCalllBack = new BluetoothAdapter.LeScanCallback() {
         @Override
@@ -158,7 +180,7 @@ public void setadresses ()
 */
 
                 if (!device.getAddress().isEmpty() /*&& mybeacon == true*/) {
-
+                ///if  the device has an address continue
                 /*if(dropdown.getPopupContext().toString().equals("0")){}
                 else {
 
@@ -172,72 +194,78 @@ public void setadresses ()
                 */
                     //foundbeacon = true;
                     int i = 0;
-                    name = device.getAddress();
+                    name = device.getAddress().toString();
                     mybeacon = false;
 
 
-                    while (i < adresslist.length) {
+                    while (i <= adresslist.length) {
+                        ///itterate through the address list to check if value == any off the known beacons
                         cont = true;
 
 
-                        if (name.toString() == adresslist[i]) {
+                        tmpadress = adresslist[i];
+
+
+                        if (name.equals(tmpadress)){
 
                             foundbeacon = true;
                             beconnum = i;
+                                ///sets the value of the found ebacon to the beacon number
 
 
-                            if (foundbeacon == true) {
+                            ///no longer required but kept just encase
 
-
-                                if (isopen == false) {
+                            /*if (isopen == false) {
                                  vibrate();
 
+                                    //vibreates if the webpage isn't opened
                                 }
+*/
 
+                                if (rssi >= -75 && !isopen) {
+                                    ///checks the current rssi value is close enough to the beacon
 
-                                if (rssi >= -55 && isopen == false) {
-                                    openURL(weblinks[beconnum]);
-                                    isopen = true;
+                                        openURL(weblinks[beconnum]);
+
+                                        isopen = true;
+
+                                    if(!hasvibrated) {
+                                        vibrate();
+                                        hasvibrated = true;
+                                    }
+                                   // isopen = true;
                                     currentaddress = name;
-                                    //currentrssi = rssi;
+                                    ///sets the address of beacon to a value to be checked against later
 
                                 }
 
 
 
-                                if (rssi <= -80 && isopen == true && name == currentaddress) {
-                                    foundbeacon = false;
-                                    closeWebApp();
-                                    hasvibrated = false;
-                                }
 
-                                beconnum = 0;
-                                isopen = false;
+
+                               // beconnum = 0;
+                                //
+                                // isopen = false;
                                 manualinput = false;
-                            } else {
 
-                                Log.d("ADDRE    SSES", "Device Adresss is " + name + " RSSI is: " + rssi);
-
-                                /*
-                                if (name.toString().equals(adresslist[2])) {
-                                    Log.d("LOGGING", "address is 2");
-                                    beconnum = 1;
-                                    foundbeacon = true;
-                                    if(hasvibrated == false){vibrate(); hasvibrated = true;}
-                                    //vibrate();
-                                }
-                                if (name.toString().equals(adresslist[1])) {
-                                    Log.d("LOGGING", "address is 1");
-                                    beconnum = 2;
-                                    foundbeacon = true;
-                                    if(hasvibrated == false){vibrate();hasvibrated = true;}
-                                    //vibrate();
-                                }
-            */
-                            }
                         }
+
+                        if (rssi <= -115 && isopen && name.equals(currentaddress)) {
+                            ///checks if the beacon is far away enough and is also the correct beacon
+                            foundbeacon = false;
+
+                            closeWebApp();
+                            isopen = false;
+                            hasvibrated = false;
+                            i = 0;
+                            ///allows for vibrate again if ffound in presence of a new beacon
+                        }
+
                         i++;
+
+                        ///i++ for itteration
                     }
+                    if (i == 5){i=0;}
                 }
 
             int startByte = 2;
@@ -253,7 +281,7 @@ public void setadresses ()
                 startByte++;
             }
 
-            //this section was for recording the device uuid but may not be needed anymore
+            ///section was for recording the device uuid but may not be needed anymore
 
 
         }
@@ -263,12 +291,12 @@ public void setadresses ()
 
     BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     boolean hasBluetooth = (mBluetoothAdapter == null);
-
+///old code used encasethe phones bluetooth failed, removed has makes the project redundant anyway
     String publicURL;
     UUID id1;
     WebView mWebView;
 
-    public void closeWebApp()
+    public void closeWebApp()///misnomer, acutally hides both not destroys
     {
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
@@ -316,19 +344,19 @@ public void setadresses ()
                 mWebView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
                 mWebView.setScrollbarFadingEnabled(false);
 
-                if(!isopen) {
-                    mWebView.loadUrl(publicURL);
-                }
+
+                mWebView.loadUrl(publicURL);
+
                 isopen = true;
                 //startActivity(browse);
                 mWebView.setWebViewClient(new WebViewClient() {
                     public void onPageFinished(WebView view, String url) {
 
-                      //  mWebView.setVisibility(View.VISIBLE); //old code
+                        //  mWebView.setVisibility(View.VISIBLE); //old code
 
                         openWebApp();
 
-                     //   isopen = true;
+                        //   isopen = true;
                     }
                 });
             }
@@ -343,9 +371,8 @@ public void setadresses ()
 
         Button button = (Button) v;
 
-        button.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v)
-            {
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 closeWebApp();
             }
         });
@@ -380,7 +407,7 @@ public void setadresses ()
 
     }
 
-    public void vibrate()
+    public void vibrate()///simply vibrates the phone briefly
     {
        Vibrator vibe = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 
@@ -423,8 +450,6 @@ public void setadresses ()
 
         }
     }
-
-
 
     public void startScan() {
 
